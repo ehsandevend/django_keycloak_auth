@@ -23,7 +23,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 
 
-@login_required(login_url='/user/login/')
+@login_required(login_url='/keycloak/login/')
 def home(request):
     created_token_timestamp = datetime.datetime.fromtimestamp(request.session.get('created_token_timestamp'))
     html_string = f"""
