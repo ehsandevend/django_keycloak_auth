@@ -18,6 +18,7 @@ KEYCLOAK_AUTH_CONFIG = {
     "USER_PROFILE_MODEL": None,  # Optional custom profile model
     "OIDC_STORE_ACCESS_TOKEN": True,  # Store access token in Django session
     "OIDC_STORE_REFRESH_TOKEN": True,  # Store refresh token in Django session
+    "OIDC_DRF_AUTH_BACKEND": 'django_keycloak_auth.auth.KeycloakAuth',
     "KEYCLOAK_CAST_ATTRIBUTES": [
         'django_keycloak_auth.cast_attributes.CastDateKeycloakAttribute'
     ],  # Attribute casting

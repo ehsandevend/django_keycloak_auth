@@ -43,7 +43,7 @@ class KeycloakConfig:
             "OIDC_OP_MASTER_TOKEN_ENDPOINT": self.get_config("OIDC_OP_MASTER_TOKEN_ENDPOINT", f"{self.KEYCLOAK_AUTH_CONFIG['OICD_HOST']}/realms/{self.KEYCLOAK_AUTH_CONFIG['OICD_REALM']}/protocol/openid-connect/token"),
             "OIDC_OP_LOGOUT_TOKEN_ENDPOINT": self.get_config("OIDC_OP_LOGOUT_TOKEN_ENDPOINT", f"{self.KEYCLOAK_AUTH_CONFIG['OICD_HOST']}/realms/{self.KEYCLOAK_AUTH_CONFIG['OICD_REALM']}/protocol/openid-connect/logout"),
             "OIDC_RP_CLIENT_ID": self.get_config("OIDC_RP_CLIENT_ID"),
-            "OIDC_DRF_AUTH_BACKEND": self.get_config("OIDC_DRF_AUTH_BACKEND"),
+            "OIDC_DRF_AUTH_BACKEND": self.get_config("OIDC_DRF_AUTH_BACKEND", 'django_keycloak_auth.auth.KeycloakAuth'),
             "OIDC_RP_CLIENT_SECRET": self.get_config("OIDC_RP_CLIENT_SECRET"),
             "OICD_REALM": self.get_config('OICD_REALM'),
             "OICD_HOST": self.get_config("OICD_HOST"),
@@ -51,7 +51,9 @@ class KeycloakConfig:
             "OIDC_RP_IDP_SIGN_KEY": self.get_config("OIDC_RP_IDP_SIGN_KEY", ""),
             "OIDC_STORE_ACCESS_TOKEN": self.get_config("OIDC_STORE_ACCESS_TOKEN", False),
             "OIDC_STORE_REFRESH_TOKEN": self.get_config("OIDC_STORE_REFRESH_TOKEN", False),
-            "KEYCLOAK_CAST_ATTRIBUTES": self.get_config("KEYCLOAK_CAST_ATTRIBUTES", []),
+            "KEYCLOAK_CAST_ATTRIBUTES": self.get_config("KEYCLOAK_CAST_ATTRIBUTES", [
+                    'django_keycloak_auth.cast_attributes.CastDateKeycloakAttribute'
+                ]),
             "KEYCLOAK_ATTRIBUTES_MAPPER": self.get_config("KEYCLOAK_ATTRIBUTES_MAPPER", {}),
         }
         return self._DEFAULTS
