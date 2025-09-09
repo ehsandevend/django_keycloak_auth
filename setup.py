@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django_keyckoak_auth',
-    version='0.1.6',
+    version='0.1.7',
     packages=find_packages(include=["django_keycloak_auth", "django_keycloak_auth.*"]),
     include_package_data=True,
     install_requires=[
@@ -16,7 +16,7 @@ setup(
     description='My reusable django keycloak auth',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    author='Ehsan Ahmadi',
+    author='Ehsan Ahmadi (Funder)',
     url='https://github.com/ehsandevend',
     classifiers=[
         'Framework :: Django',
