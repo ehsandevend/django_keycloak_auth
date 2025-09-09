@@ -1,0 +1,70 @@
+{%block navbar%}
+{%endblock%}
+{% load i18n %}
+{%load static%}
+
+{% block content %}
+
+  <script src="{% static 'django_keycloak_auth/vendor/jquery/jquery.min.js' %}"></script>
+
+<div class="container mx-auto max-w-3xl min-h-svh flex flex-col justify-center">
+
+
+            <div class="login-form w-10/12 sm:w-8/12 lg:w-6/12 mx-auto">
+                <form id="login-static-form" action="{%url 'django_keycloak_auth:login'%}" method="POST">
+                    <input type="hidden" name="next" />
+                    {% csrf_token %}
+                    <div class="email flex flex-col gap-y-1 justify-start items-start py-2">
+                        <label for="username" class="font-semibold text-base">{% trans 'Username' %}:</label>
+                        <input id="username" name="username" class="block w-full rounded-md py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 px-2 placeholder:px-2 focus:bg-gray-100">
+                    </div>
+                    <div class="password flex flex-col gap-y-1 justify-start items-start py-2 relative">
+                        <div class="password-label w-full flex flex-row justify-between">
+                            <label for="password" class="font-semibold text-base">{% trans 'Password' %}:</label>
+                        </div>
+                        <input id="password"  name="password" class="block w-full rounded-md py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 px-2 placeholder:px-2 focus:bg-gray-100">
+                    </div>
+                    <div class="alert alert-danger">
+                        <ul>
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li>{{ field.label }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <button type="button" id="submit-static-login-btn" class="w-full rounded-md bg-teal-800 py-2 my-4 text-base font-semibold text-white shadow-sm hover:bg-teal-700">Log in</button>
+    
+                </form>
+            </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+
+    $(document).on('click', '#submit-static-login-btn', (e) => {
+        e.preventDefault();
+        $(e.currentTarget).prop('disabled', true).text('Loading...');
+        const url = new URL(window.location.href);
+        const nextParam = url.searchParams.get('next');
+        debugger;
+        password_value = $("#password").val()
+        username_value = $("#username").val()
+        $('#login-static-form [name="next"]').val(nextParam)
+        if (!password_value || !username_value) 
+        {
+            alert("invalid input")
+            return
+        }
+        
+        $("#login-static-form").submit();
+
+    })
+});
+
+
+</script>
+{% endblock %}

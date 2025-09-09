@@ -1,0 +1,4 @@
+include README.md LICENSE
+recursive-include django_keycloak_auth/templates *
+recursive-include django_keycloak_auth/static *
+recursive-include django_keycloak_auth/migrations *
