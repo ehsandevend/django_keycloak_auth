@@ -1,11 +1,15 @@
-Django Keycloak Authentication Configuration
 
-This Django configuration demonstrates how to integrate Keycloak for OpenID Connect (OIDC) authentication, map Keycloak attributes to Django’s user model, and configure DRF authentication.
+# Django Keycloak Authentication Configuration
 
-1. Keycloak Authentication Settings
+This Django configuration demonstrates how to integrate **Keycloak** for OpenID Connect (OIDC) authentication, map Keycloak attributes to Django’s user model, and configure DRF authentication.
 
-The Keycloak integration is managed using the KEYCLOAK_AUTH_CONFIG dictionary:
+---
 
+## 1. Keycloak Authentication Settings
+
+The Keycloak integration is managed using the `KEYCLOAK_AUTH_CONFIG` dictionary:
+
+```python
 KEYCLOAK_AUTH_CONFIG = {
     "OIDC_RP_CLIENT_ID": "client id",  # Your Keycloak client ID
     "OIDC_RP_CLIENT_SECRET": "secret key",  # Client secret
@@ -26,33 +30,37 @@ KEYCLOAK_AUTH_CONFIG = {
         # Add additional mappings as needed
     }
 }
+```
 
-Notes:
+**Notes:**
 
-OIDC_STORE_ACCESS_TOKEN and OIDC_STORE_REFRESH_TOKEN: Store the tokens in the session for use in API calls or DRF authentication.
+- `OIDC_STORE_ACCESS_TOKEN` and `OIDC_STORE_REFRESH_TOKEN`: Store tokens in the session for API calls or DRF authentication.  
+- `KEYCLOAK_ATTRIBUTES_MAPPER`: Maps Keycloak attributes to Django `CustomUser` model fields.  
+- `KEYCLOAK_CAST_ATTRIBUTES`: Provides custom casting of attributes if required (e.g., dates).  
 
-KEYCLOAK_ATTRIBUTES_MAPPER: Maps Keycloak attributes to Django CustomUser model fields.
+---
 
-KEYCLOAK_CAST_ATTRIBUTES: Provides custom casting of attributes if required (e.g., dates).
-
-2. Authentication Backends
+## 2. Authentication Backends
 
 Add the following backends to support both Keycloak and default Django authentication:
 
+```python
 AUTHENTICATION_BACKENDS = (
     'django_keycloak_auth.auth.KeycloakAuth',
     'django.contrib.auth.backends.ModelBackend'
 )
+```
 
+- **KeycloakAuth** handles Keycloak OIDC authentication.  
+- **ModelBackend** ensures fallback to Django’s default authentication.  
 
-KeycloakAuth handles Keycloak OIDC authentication.
+---
 
-ModelBackend ensures fallback to Django’s default authentication.
-
-3. Django REST Framework Integration
+## 3. Django REST Framework Integration
 
 Configure DRF to use Keycloak OIDC authentication:
 
+```python
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'django_keycloak_auth.drf_auth.CustomOIDCAuthentication',
@@ -61,66 +69,87 @@ REST_FRAMEWORK = {
         # Add your filter backends here
     ),
 }
+```
 
+- `CustomOIDCAuthentication` allows API endpoints to authenticate requests using the stored access token.  
+- Filters can be customized as needed for your application.  
 
-CustomOIDCAuthentication allows API endpoints to authenticate requests using the stored access token.
+---
 
-Filters can be customized as needed for your application.
+## 4. Login and Logout Redirects
 
-4. Login and Logout Redirects
-LOGIN_REDIRECT_URL = '/'  # Redirect after successful login
+```python
+LOGIN_REDIRECT_URL = '/'   # Redirect after successful login
 LOGOUT_REDIRECT_URL = '/'  # Redirect after logout
+```
 
-5. Custom User Model
+---
+
+## 5. Custom User Model
 
 If using a custom user model:
 
+```python
 AUTH_USER_MODEL = 'users.CustomUser'
+```
 
+⚠️ Ensure the custom user model is fully migrated before running the application.  
 
-Ensure the custom user model is fully migrated before running the application.
+---
 
-6. Static Files Configuration
+## 6. Static Files Configuration
+
+```python
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+```
 
+Defines the URL and root directory for serving static files.  
 
-Defines the URL and root directory for serving static files.
+---
 
-7. Setup Instructions
+## 7. Setup Instructions
 
 Install dependencies:
 
+```bash
 pip install django-keycloak-auth
+```
 
-
-Configure KEYCLOAK_AUTH_CONFIG with your Keycloak client credentials.
-
-Ensure your Keycloak client has the correct redirect URIs (/oidc/callback/ by default).
+Configure `KEYCLOAK_AUTH_CONFIG` with your Keycloak client credentials.  
+Ensure your Keycloak client has the correct redirect URIs (`/oidc/callback/` by default).  
 
 Apply migrations for the custom user model:
 
+```bash
 python manage.py migrate django_keycloak_auth
-
+```
 
 Start the Django server:
 
+```bash
 python manage.py runserver
+```
 
+Navigate to your app and test login/logout with Keycloak.  
 
-Navigate to your app and test login/logout with Keycloak.
+---
 
-8. Additional Notes
+## 8. Additional Notes
 
-You can add additional Keycloak attribute mappings in KEYCLOAK_ATTRIBUTES_MAPPER.
+- You can add additional Keycloak attribute mappings in `KEYCLOAK_ATTRIBUTES_MAPPER`.  
+- Access tokens stored in the session can be used for making API calls to Keycloak-protected resources.  
+- Make sure `django_keycloak_auth` is included in `INSTALLED_APPS`.  
 
-Access tokens stored in the session can be used for making API calls to Keycloak-protected resources.
+---
 
-Make sure django_keycloak_auth is included in INSTALLED_APPS.
+## 9. Middleware
 
-9: add Middleware
+Add Keycloak middleware:
 
+```python
 MIDDLEWARE = [
     ....
     'django_keycloak_auth.auth_middleware.KeycloakMiddleware'
 ]
+```
