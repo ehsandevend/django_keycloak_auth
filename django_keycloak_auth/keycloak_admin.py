@@ -175,21 +175,34 @@ class KeycloakAdmin():
         token_info = response.json()
         return token_info
 
-    def get_userinfo(self, user_id):
+    def get_userinfo(self, user_id=None, username=None):
         """Return user details dictionary. The id_token and payload are not used in
         the default implementation, but may be used when overriding this method"""
         admin_access_token = self._get_admin_access_token()
-        user_response = requests.get(
-            f"{self.OIDC_OP_USER_ENDPOINT}/{user_id}",
-            headers={"Authorization": "Bearer {0}".format(admin_access_token)},
-            verify=self.OIDC_VERIFY_SSL,
-            timeout=self.OIDC_TIMEOUT,
-            proxies=self.OIDC_PROXY,
-        )
+        if username:
+            user_response = requests.get(
+                f"{self.OIDC_OP_USER_ENDPOINT}/?username={username}",
+                headers={"Authorization": "Bearer {0}".format(admin_access_token)},
+                verify=self.OIDC_VERIFY_SSL,
+                timeout=self.OIDC_TIMEOUT,
+                proxies=self.OIDC_PROXY,
+            )
+        elif user_id:
+            user_response = requests.get(
+                    f"{self.OIDC_OP_USER_ENDPOINT}/{user_id}",
+                    headers={"Authorization": "Bearer {0}".format(admin_access_token)},
+                    verify=self.OIDC_VERIFY_SSL,
+                    timeout=self.OIDC_TIMEOUT,
+                    proxies=self.OIDC_PROXY,
+                )
+        else:
+            raise ValueError("Must provide either user_id or username")
+
         user_response.raise_for_status()
         user_info = user_response.json()
         return user_info
 
+    
     def get_jwks(self):
         response = requests.get(self.OIDC_OP_JWKS_ENDPOINT)
         response.raise_for_status()
