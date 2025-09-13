@@ -1,13 +1,18 @@
+from django.apps import apps
 import requests
 from jose import jwt
 from jose.exceptions import JWTError, ExpiredSignatureError
-
+from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.utils import timezone
 from rest_framework import exceptions, status
+from django_keycloak_auth.auth import KeyCloakUser
+from django.core.exceptions import SuspiciousOperation
 from django_keycloak_auth.exeptions import InvalidCredentials
 from django_keycloak_auth.models import AccessToken
-from django.apps import apps
+
+UserModel = get_user_model()
+
 
 django_keycloak_auth_config = apps.get_app_config("django_keycloak_auth")
 
@@ -175,6 +180,12 @@ class KeycloakAdmin():
         token_info = response.json()
         return token_info
 
+    def get_roles(self, payload):
+        realm_roles = payload.get("realm_access", {}).get("roles", [])
+        client_roles = payload.get("resource_access", {}).get(
+            self.OIDC_RP_CLIENT_ID, {}).get("roles", [])
+        return {"realm_roles": realm_roles, "client_roles": client_roles}
+
     def get_userinfo(self, user_id=None, username=None):
         """Return user details dictionary. The id_token and payload are not used in
         the default implementation, but may be used when overriding this method"""
@@ -182,19 +193,21 @@ class KeycloakAdmin():
         if username:
             user_response = requests.get(
                 f"{self.OIDC_OP_USER_ENDPOINT}/?username={username}",
-                headers={"Authorization": "Bearer {0}".format(admin_access_token)},
+                headers={"Authorization": "Bearer {0}".format(
+                    admin_access_token)},
                 verify=self.OIDC_VERIFY_SSL,
                 timeout=self.OIDC_TIMEOUT,
                 proxies=self.OIDC_PROXY,
             )
         elif user_id:
             user_response = requests.get(
-                    f"{self.OIDC_OP_USER_ENDPOINT}/{user_id}",
-                    headers={"Authorization": "Bearer {0}".format(admin_access_token)},
-                    verify=self.OIDC_VERIFY_SSL,
-                    timeout=self.OIDC_TIMEOUT,
-                    proxies=self.OIDC_PROXY,
-                )
+                f"{self.OIDC_OP_USER_ENDPOINT}/{user_id}",
+                headers={"Authorization": "Bearer {0}".format(
+                    admin_access_token)},
+                verify=self.OIDC_VERIFY_SSL,
+                timeout=self.OIDC_TIMEOUT,
+                proxies=self.OIDC_PROXY,
+            )
         else:
             raise ValueError("Must provide either user_id or username")
 
@@ -202,7 +215,6 @@ class KeycloakAdmin():
         user_info = user_response.json()
         return user_info
 
-    
     def get_jwks(self):
         response = requests.get(self.OIDC_OP_JWKS_ENDPOINT)
         response.raise_for_status()
@@ -292,3 +304,41 @@ class KeycloakAdmin():
         if realm_roles is None:
             return client_roles
         return client_roles + realm_roles
+
+    def get_or_create_user(self, payload):
+
+        user_info = self.get_userinfo(payload['sub'])
+
+        if not user_info:
+            raise Exception("user info hasn't fetched")
+
+        roles = self.get_roles(payload)
+
+        users = self.filter_users_by_claims(user_info)
+        keycloak_user = KeyCloakUser(
+            user_info=user_info, roles=roles['client_roles'])
+        if len(users) == 1:
+            return keycloak_user.update_user(users[0], user_info)
+        elif len(users) > 1:
+            # In the rare case that two user accounts have the same email address,
+            # bail. Randomly selecting one seems really wrong.
+            msg = "Multiple users returned"
+            raise SuspiciousOperation(msg)
+        elif self.keycloak_configs.get("OIDC_CREATE_USER", True):
+            user = keycloak_user.create_user()
+            return user
+        else:
+            return None
+
+    def filter_users_by_claims(self, claims):
+        if 'id' in claims:
+            user_id = claims.get("id")
+            if not user_id:
+                return UserModel.objects.none()
+            return UserModel.objects.filter(id=user_id)
+        elif 'username' in claims:
+            username = claims.get("username")
+            if not username:
+                return UserModel.objects.none()
+            return UserModel.objects.filter(username=username)
+        return UserModel.objects.none()
