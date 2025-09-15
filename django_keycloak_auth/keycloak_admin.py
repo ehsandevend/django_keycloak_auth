@@ -6,7 +6,6 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.utils import timezone
 from rest_framework import exceptions, status
-from django_keycloak_auth.auth import KeyCloakUser
 from django.core.exceptions import SuspiciousOperation
 from django_keycloak_auth.exeptions import InvalidCredentials
 from django_keycloak_auth.models import AccessToken
@@ -157,8 +156,8 @@ class KeycloakAdmin():
 
     def get_user_access_token_from_refresh(self, refresh_token):
         payload = {
-            "client_id": settings.OIDC_RP_CLIENT_ID,
-            "client_secret": settings.OIDC_RP_CLIENT_SECRET,
+            "client_id": self.OIDC_RP_CLIENT_ID,
+            "client_secret": self.OIDC_RP_CLIENT_SECRET,
             "grant_type": "refresh_token",
             "refresh_token": refresh_token,
         }
@@ -305,10 +304,11 @@ class KeycloakAdmin():
             return client_roles
         return client_roles + realm_roles
 
-    def get_or_create_user(self, payload):
-
-        user_info = self.get_userinfo(payload['sub'])
-
+    def get_or_create_user(self, payload=None, user_info=None):
+        from django_keycloak_auth.auth import KeyCloakUser
+        if not user_info:
+            user_info = self.get_userinfo(payload['sub'])
+        
         if not user_info:
             raise Exception("user info hasn't fetched")
 
