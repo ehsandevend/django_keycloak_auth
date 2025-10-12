@@ -1,4 +1,3 @@
-from django_keycloak_auth.auth import KeycloakAuth
 from django.core.exceptions import SuspiciousOperation
 from django.core.exceptions import ImproperlyConfigured, SuspiciousOperation
 from rest_framework import exceptions
@@ -30,7 +29,7 @@ def get_backend():
     """
     Get the Django auth backend that uses OIDC.
     """
-
+    from django_keycloak_auth.auth import KeycloakAuth
     # allow the user to force which back backend to use. this is mostly
     # convenient if you want to use OIDC with DRF but don't want to configure
     # OIDC for the "normal" Django auth.

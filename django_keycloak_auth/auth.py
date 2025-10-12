@@ -16,7 +16,7 @@ from django.utils import timezone
 
 from django.apps import apps
 
-from django_keycloak_auth.keycloak_admin import KeycloakAdmin
+
 
 django_keycloak_auth_config = apps.get_app_config("django_keycloak_auth")
 
@@ -72,7 +72,7 @@ class KeyCloakUser():
             keycloak_attr_key = self.KEYCLOAK_ATTRIBUTES_MAPPER.get(field)
             if not keycloak_attr_key:
                 continue
-            keycloak_attr_val = self.user_info.get(keycloak_attr_key)
+            keycloak_attr_val = self.get_user_attribute(keycloak_attr_key)
             if self.KEYCLOAK_CAST_ATTRIBUTES:
                 for cast in self.KEYCLOAK_CAST_ATTRIBUTES:
                     casted_class = import_string(cast)
@@ -126,6 +126,15 @@ class KeyCloakUser():
                     profile.save()
         return user
 
+    def get_user_attribute(self, keycloak_attr_key):
+        attributes = self.user_info.get('attributes')
+        res = self.user_info.get(keycloak_attr_key, None)
+        if not res:
+            res = attributes.get(keycloak_attr_key)
+        if isinstance(res, list):
+            return  res[0] if len(res) <= 1 else res
+        return  res
+    
     def update_user(self, user, user_info):
         user_extra_fields = {}
         profile_extra_fields = {}
@@ -134,7 +143,7 @@ class KeyCloakUser():
             keycloak_attr_key = self.KEYCLOAK_ATTRIBUTES_MAPPER.get(field)
             if not keycloak_attr_key:
                 continue
-            keycloak_attr_val = self.user_info.get(keycloak_attr_key)
+            keycloak_attr_val = self.get_user_attribute(keycloak_attr_key)
             if self.KEYCLOAK_CAST_ATTRIBUTES:
                 for cast in self.KEYCLOAK_CAST_ATTRIBUTES:
                     casted_class = import_string(cast)
@@ -212,6 +221,7 @@ class KeycloakAuth(ModelBackend):
 
     def __init__(self):
         super().__init__()
+        from django_keycloak_auth.keycloak_admin import KeycloakAdmin
         self.keycloak_manager = KeycloakAdmin()
         self.keycloak_configs = django_keycloak_auth_config.keycloak_configs
         self.OIDC_OP_JWKS_ENDPOINT = self.keycloak_configs.get(
