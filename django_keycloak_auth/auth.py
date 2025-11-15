@@ -317,12 +317,9 @@ class KeycloakAuth(ModelBackend):
             self.keycloak_manager.log_out_user(
                 self.token_info.get('refresh_token'))
 
-    def authenticate(self, request, username=None, password=None, **kwargs):
+    def authenticate(self, request=None, username=None, password=None, **kwargs):
         """Authenticates a user based on the OIDC code flow."""
 
-        self.request = request
-        if not self.request:
-            return None
         if username is None:
             username = kwargs.get(UserModel.USERNAME_FIELD)
         if username is None or password is None:
@@ -335,7 +332,7 @@ class KeycloakAuth(ModelBackend):
         try:
             payload = self.keycloak_manager.introspect(self.token_info.get("access_token"))
             if payload:
-                self.store_tokens(self.token_info)
+                self.store_tokens(request=request, token_info=self.token_info)
 
             return self.get_or_create_user(payload)
         except Exception as e:
@@ -381,9 +378,11 @@ class KeycloakAuth(ModelBackend):
         else:
             return None
 
-    def store_tokens(self, token_info: dict):
+    def store_tokens(self, request, token_info: dict):
         """Store OIDC tokens."""
-        session = self.request.session
+        if not request:
+            return 
+        session = request.session
         session["created_token_timestamp"] = token_info.get(
             'created_timestamp')
         if self.keycloak_configs.get("OIDC_STORE_ACCESS_TOKEN", False):
