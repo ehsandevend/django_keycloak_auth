@@ -7,7 +7,7 @@ from django.conf import settings
 from django.utils import timezone
 from rest_framework import exceptions, status
 from django.core.exceptions import SuspiciousOperation
-from django_keycloak_auth.exeptions import InvalidCredentials
+from django_keycloak_auth.exceptions import InvalidCredentials
 from django_keycloak_auth.models import AccessToken
 
 UserModel = get_user_model()
