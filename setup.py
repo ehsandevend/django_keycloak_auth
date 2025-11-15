@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django_keyckoak_auth',
-    version='0.1.10',
+    version='0.1.13',
     packages=find_packages(include=["django_keycloak_auth", "django_keycloak_auth.*"]),
     include_package_data=True,
     install_requires=[

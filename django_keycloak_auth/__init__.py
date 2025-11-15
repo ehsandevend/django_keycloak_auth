@@ -11,7 +11,7 @@ from django.conf import settings
 import warnings
 
 __title__ = 'Django Keycloak Auth'
-__version__ = '0.1.10'
+__version__ = '0.1.13'
 __author__ = 'Ehsan Ahmadi'
 __license__ = 'BSD 3-Clause'
 __copyright__ = 'Copyright 2024-2025 Encode OSS Ltd'
