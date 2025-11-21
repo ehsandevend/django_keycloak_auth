@@ -181,7 +181,7 @@ class KeyCloakUser():
 
         with transaction.atomic():
             username = user_extra_fields.pop(
-                'username'),
+                'username')
             email = user_extra_fields.pop(
                 'email')
             user.email = email
